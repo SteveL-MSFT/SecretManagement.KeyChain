@@ -7,8 +7,10 @@
     Copyright = '(c) Microsoft Corporation'
     Description = 'SecretManagement extension vault for macOS KeyChain'
     RootModule = 'SecretManagement.KeyChain.psm1'
-    NestedModules = @('SecretManagement.KeyChain.Extension')
+    # RequiredModules = @('Microsoft.PowerShell.SecretManagement')
+    NestedModules = @('./SecretManagement.KeyChain.Extension')
     FunctionsToExport = @('Unlock-KeyChain','Set-KeyChainConfiguration','Get-KeyChainConfiguration')
+    PowerShellVersion = '5.1'
     CmdletsToExport = @()
     VariablesToExport = @()
     AliasesToExport = @()
