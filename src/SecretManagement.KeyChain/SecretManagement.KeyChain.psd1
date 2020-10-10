@@ -14,7 +14,7 @@
     AliasesToExport = @()
     PrivateData = @{
         PSData = @{
-            Tags = @('SecretManagement')
+            Tags = @('SecretManagement','macOS')
             LicenseUri = 'https://github.com/SteveL-MSFT/SecretManagement.KeyChain/blob/main/LICENSE'
             ProjectUri = 'https://github.com/SteveL-MSFT/SecretManagement.KeyChain'
             ReleaseNotes = 'Initial release'
