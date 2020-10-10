@@ -7,10 +7,10 @@ function Unlock-KeyChain {
     )
 
     if ($Password) {
-        security unlock-keychain -p ($Password | ConvertFrom-SecureString -AsPlainText)
+        security unlock-keychain -p ($Password | ConvertFrom-SecureString -AsPlainText) $keyChainName
     }
     else {
-        security unlock-keychain
+        security unlock-keychain $keyChainName
     }
 }
 
