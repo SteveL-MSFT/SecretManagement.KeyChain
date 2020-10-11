@@ -1,4 +1,5 @@
 $keyChainName = 'SecretManagement.KeyChain'
+$securityCmd = '/usr/bin/security'
 
 # Helpers
 
@@ -144,7 +145,7 @@ function Get-Secret {
     $Name = $Name.ToLower()
     $VaultName = Get-VaultName $VaultName
 
-    $out = security find-generic-password -a $Name -s $VaultName -g $keyChainName 2>&1
+    $out = & $securityCmd find-generic-password -a $Name -s $VaultName -g $keyChainName 2>&1
     if (!$?) {
         throw $out
     }
@@ -227,7 +228,7 @@ function Set-Secret {
     }
 
     $Secret = ConvertTo-Base64 $Secret
-    $out = security add-generic-password -a $Name -s $VaultName -c $type -w $Secret -U $keyChainName 2>&1
+    $out = & $securityCmd add-generic-password -a $Name -s $VaultName -c $type -w $Secret -U $keyChainName 2>&1
     if (!$?) {
         throw $out
     }
@@ -247,7 +248,7 @@ function Remove-Secret {
     # KeyChain is case-sensitive, so always use lowercase
     $Name = $Name.ToLower()
 
-    $out = security delete-generic-password -a $Name -s $VaultName $keyChainName 2>&1
+    $out = & $securityCmd delete-generic-password -a $Name -s $VaultName $keyChainName 2>&1
     if (!$?) {
         throw $out
     }
@@ -264,7 +265,7 @@ function Get-SecretInfo {
     $VaultName = Get-VaultName $VaultName
 
     if ($filter.Contains('*')) {
-        $output = security dump-keychain $keyChainName | Out-String
+        $output = & $securityCmd dump-keychain $keyChainName | Out-String
         if (!$?) {
             throw "Unable to get contents of KeyChain"
         }
@@ -286,7 +287,7 @@ function Get-SecretInfo {
         }
     }
     else {
-        $output = security find-generic-password -a $Filter -s $VaultName $keyChainName | Out-String
+        $output = & $securityCmd find-generic-password -a $Filter -s $VaultName $keyChainName | Out-String
         if (!$?) {
             return $null
         }
@@ -306,9 +307,9 @@ function Test-SecretVault {
         [hashtable] $AdditionalParameters
     )
 
-    $null = security show-keychain-info $keyChainName 2>&1
+    $null = & $securityCmd show-keychain-info $keyChainName 2>&1
     if (!$?) {
-        security create-keychain -P $keyChainName
+        & $securityCmd create-keychain -P $keyChainName
     }
 
     return $?

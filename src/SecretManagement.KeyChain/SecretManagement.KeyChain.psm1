@@ -1,4 +1,5 @@
 $keyChainName = 'SecretManagement.KeyChain'
+$securityCmd = '/usr/bin/security'
 
 function Unlock-KeyChain {
     [CmdletBinding()]
@@ -7,24 +8,29 @@ function Unlock-KeyChain {
     )
 
     if ($Password) {
-        security unlock-keychain -p ($Password | ConvertFrom-SecureString -AsPlainText) $keyChainName
+        & $securityCmd unlock-keychain -p ($Password | ConvertFrom-SecureString -AsPlainText) $keyChainName
     }
     else {
-        security unlock-keychain $keyChainName
+        & $securityCmd unlock-keychain $keyChainName
     }
 }
 
 function Set-KeyChainConfiguration {
     [CmdletBinding()]
     param (
+        [SecureString] $Password,
         [int] $PasswordTimeout
     )
 
     if ($PasswordTimeout -eq 0) {
-        security set-keychain-settings $keyChainName
+        & $securityCmd set-keychain-settings $keyChainName
     }
     else {
-        security set-keychain-settings -t $PasswordTimeout $keyChainName
+        & $securityCmd set-keychain-settings -t $PasswordTimeout $keyChainName
+    }
+
+    if ($Password) {
+        & $securityCmd set-keychain-password -p ($Password | ConvertFrom-SecureString -AsPlainText) $keyChainName
     }
 }
 
@@ -33,7 +39,7 @@ function Get-KeyChainConfiguration {
     param ()
 
     $null = Test-SecretVault -VaultName $keyChainName
-    $out = security show-keychain-info $keyChainName 2>&1
+    $out = & $securityCmd show-keychain-info $keyChainName 2>&1
 
     # example output:
     # Keychain "SecretManagement.KeyChain" lock-on-sleep timeout=300s
