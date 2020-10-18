@@ -145,8 +145,8 @@ function Get-Secret {
     $Name = $Name.ToLower()
     $VaultName = Get-VaultName $VaultName
 
-    $out = & $securityCmd find-generic-password -a $Name -s $VaultName -g $keyChainName 2>&1
-    if (!$?) {
+    $out = & $securityCmd find-generic-password -a $Name -s $VaultName -g $keyChainName 2>&1 | Out-String
+    if ($out -notmatch 'password: "(.*?)"') {
         throw $out
     }
 
@@ -248,11 +248,12 @@ function Remove-Secret {
     # KeyChain is case-sensitive, so always use lowercase
     $Name = $Name.ToLower()
 
-    $out = & $securityCmd delete-generic-password -a $Name -s $VaultName $keyChainName 2>&1
-    if (!$?) {
+    $out = & $securityCmd delete-generic-password -a $Name -s $VaultName $keyChainName 2>&1 | Out-String
+    $exitstatus = $out -match 'password has been deleted'
+    if (!$exitstatus) {
         throw $out
     }
-    return $?
+    return $exitstatus
 }
 
 function Get-SecretInfo {
@@ -307,10 +308,11 @@ function Test-SecretVault {
         [hashtable] $AdditionalParameters
     )
 
-    $null = & $securityCmd show-keychain-info $keyChainName 2>&1
-    if (!$?) {
+    $out = & $securityCmd show-keychain-info $keyChainName 2>&1 | Out-String
+    $exitstatus = $out -match $keyChainName
+    if (!$exitstatus) {
         & $securityCmd create-keychain -P $keyChainName
     }
 
-    return $?
+    return $exitstatus
 }
