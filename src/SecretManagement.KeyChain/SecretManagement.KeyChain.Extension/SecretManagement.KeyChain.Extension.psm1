@@ -108,6 +108,10 @@ function Convert-KeyChainSecret([string]$text) {
         $name = $matches[1]
     }
 
+    if ($text -match '"svce"\<blob\>="(.*?)"') {
+        $vaultname = $matches[1]
+    }
+
     if ($text -match '"crtr"<uint32>="(.*?)"') {
         $typename = $matches[1]
     }
@@ -125,6 +129,7 @@ function Convert-KeyChainSecret([string]$text) {
         TypeName = $typename
         Type = (Get-SecretType $typename)
         Secret = $secret
+        VaultName = $vaultname
     }
 }
 
@@ -278,7 +283,7 @@ function Get-SecretInfo {
         foreach ($secretText in $output.Split('keychain:', [System.StringSplitOptions]::RemoveEmptyEntries)) {
             $secret = Convert-KeyChainSecret $secretText
 
-            if ($secret.Name -like $Filter) {
+            if ($secret.Name -like $Filter -and $secret.VaultName -eq $VaultName) {
                 [Microsoft.PowerShell.SecretManagement.SecretInformation]::new(
                     $secret.Name,
                     $secret.Type,
