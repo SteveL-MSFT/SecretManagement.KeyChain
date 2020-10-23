@@ -8,38 +8,38 @@ Describe 'SecretManagement.KeyChain tests' {
     }
 
     It 'KeyChain vault is registered' {
-        Get-SecretVault KeyChain | Should -Not -BeNullOrEmpty
+        Get-SecretVault -Name KeyChain | Should -Not -BeNullOrEmpty
     }
 
     It 'Can store a string secret' {
         $secretText = 'This is my string secret'
         Set-Secret -Name $secretName -Vault KeyChain -Secret $secretText
 
-        $secretInfo = Get-SecretInfo -Name $secretName
+        $secretInfo = Get-SecretInfo -Name $secretName -Vault KeyChain
         $secretInfo.Name | Should -BeExactly $secretName
         $secretInfo.Type | Should -BeExactly 'String'
         $secretInfo.VaultName | Should -BeExactly 'KeyChain'
-        $secret = Get-Secret -Name $secretName -AsPlainText
+        $secret = Get-Secret -Name $secretName -Vault KeyChain -AsPlainText
         $secret | Should -BeExactly $secretText
 
         Remove-Secret -Name $secretName -Vault KeyChain
-        { Get-Secret -Name $secretName -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
+        { Get-Secret -Name $secretName -Vault KeyChain -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
     }
 
     It 'Can store a secure string secret' {
         $secretText = 'This is my securestring secret'
         Set-Secret -Name $secretName -Vault KeyChain -Secret ($secretText | ConvertTo-SecureString -AsPlainText)
 
-        $secretInfo = Get-SecretInfo -Name $secretName
+        $secretInfo = Get-SecretInfo -Name $secretName -Vault KeyChain
         $secretInfo.Name | Should -BeExactly $secretName
         $secretInfo.Type | Should -BeExactly 'SecureString'
         $secretInfo.VaultName | Should -BeExactly 'KeyChain'
 
-        $secret = Get-Secret -Name $secretName -AsPlainText
+        $secret = Get-Secret -Name $secretName -Vault KeyChain -AsPlainText
         $secret | Should -BeExactly $secretText
 
         Remove-Secret -Name $secretName -Vault KeyChain
-        { Get-Secret -Name $secretName -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
+        { Get-Secret -Name $secretName -Vault KeyChain -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
     }
 
     It 'Can store a byte array secret' {
@@ -47,16 +47,16 @@ Describe 'SecretManagement.KeyChain tests' {
         $bytes = [System.Text.Encoding]::UTF8.GetBytes($secretText)
         Set-Secret -Name $secretName -Vault KeyChain -Secret $bytes
 
-        $secretInfo = Get-SecretInfo -Name $secretName
+        $secretInfo = Get-SecretInfo -Name $secretName -Vault KeyChain
         $secretInfo.Name | Should -BeExactly $secretName
         $secretInfo.Type | Should -BeExactly 'ByteArray'
         $secretInfo.VaultName | Should -BeExactly 'KeyChain'
 
-        $secret = Get-Secret -Name $secretName
+        $secret = Get-Secret -Name $secretName -Vault KeyChain
         [System.Text.Encoding]::UTF8.GetString($secret) | Should -BeExactly $secretText
 
         Remove-Secret -Name $secretName -Vault KeyChain
-        { Get-Secret -Name $secretName -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
+        { Get-Secret -Name $secretName -Vault KeyChain -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
     }
 
     It 'Can store a PSCredential secret' {
@@ -64,17 +64,17 @@ Describe 'SecretManagement.KeyChain tests' {
         $secret = [PSCredential]::new('myUser', ($secretText | ConvertTo-SecureString -AsPlainText))
         Set-Secret -Name $secretName -Vault KeyChain -Secret $secret
 
-        $secretInfo = Get-SecretInfo -Name $secretName
+        $secretInfo = Get-SecretInfo -Name $secretName -Vault KeyChain
         $secretInfo.Name | Should -BeExactly $secretName
         $secretInfo.Type | Should -BeExactly 'PSCredential'
         $secretInfo.VaultName | Should -BeExactly 'KeyChain'
 
-        $secret = Get-Secret -Name $secretName
+        $secret = Get-Secret -Name $secretName -Vault KeyChain
         $secret.UserName | Should -BeExactly 'myUser'
         $secret.Password | ConvertFrom-SecureString -AsPlainText | Should -BeExactly $secretText
 
         Remove-Secret -Name $secretName -Vault KeyChain
-        { Get-Secret -Name $secretName -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
+        { Get-Secret -Name $secretName -Vault KeyChain -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
     }
 
     It 'Can store hashtable secret' {
@@ -93,12 +93,12 @@ Describe 'SecretManagement.KeyChain tests' {
         }
 
         Set-Secret -Name $secretName -Vault KeyChain -Secret $hashtable
-        $secretInfo = Get-SecretInfo -Name $secretName
+        $secretInfo = Get-SecretInfo -Name $secretName -Vault KeyChain
         $secretInfo.Name | Should -BeExactly $secretName
         $secretInfo.Type | Should -BeExactly 'Hashtable'
         $secretInfo.VaultName | Should -BeExactly 'KeyChain'
 
-        $secret = Get-Secret -Name $secretName -AsPlainText
+        $secret = Get-Secret -Name $secretName -Vault KeyChain -AsPlainText
         $secret.a | Should -Be 1
         $secret.b | Should -BeOfType [PSCredential]
         $secret.b.UserName | Should -BeExactly 'myUser'
@@ -112,6 +112,6 @@ Describe 'SecretManagement.KeyChain tests' {
         $secret.g | Should -BeExactly $secretText
 
         Remove-Secret -Name $secretName -Vault KeyChain
-        { Get-Secret -Name $secretName -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
+        { Get-Secret -Name $secretName -Vault KeyChain -ErrorAction Stop } | Should -Throw -ErrorId 'GetSecretInvalidOperation,Microsoft.PowerShell.SecretManagement.GetSecretCommand'
     }
 }
