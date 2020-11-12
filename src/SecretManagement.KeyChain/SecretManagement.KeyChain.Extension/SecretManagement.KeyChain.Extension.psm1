@@ -108,6 +108,10 @@ function Convert-KeyChainSecret([string]$text) {
         $name = $matches[1]
     }
 
+    if ($text -match '"svce"\<blob\>="(.*?)"') {
+        $vaultname = $matches[1]
+    }
+
     if ($text -match '"crtr"<uint32>="(.*?)"') {
         $typename = $matches[1]
     }
@@ -125,6 +129,7 @@ function Convert-KeyChainSecret([string]$text) {
         TypeName = $typename
         Type = (Get-SecretType $typename)
         Secret = $secret
+        VaultName = $vaultname
     }
 }
 
@@ -145,8 +150,8 @@ function Get-Secret {
     $Name = $Name.ToLower()
     $VaultName = Get-VaultName $VaultName
 
-    $out = & $securityCmd find-generic-password -a $Name -s $VaultName -g $keyChainName 2>&1
-    if (!$?) {
+    $out = & $securityCmd find-generic-password -a $Name -s $VaultName -g $keyChainName 2>&1 | Out-String
+    if ($out -notmatch 'password: "(.*?)"') {
         throw $out
     }
 
@@ -248,11 +253,12 @@ function Remove-Secret {
     # KeyChain is case-sensitive, so always use lowercase
     $Name = $Name.ToLower()
 
-    $out = & $securityCmd delete-generic-password -a $Name -s $VaultName $keyChainName 2>&1
-    if (!$?) {
+    $out = & $securityCmd delete-generic-password -a $Name -s $VaultName $keyChainName 2>&1 | Out-String
+    $exitstatus = $out -match 'password has been deleted'
+    if (!$exitstatus) {
         throw $out
     }
-    return $?
+    return $exitstatus
 }
 
 function Get-SecretInfo {
@@ -277,7 +283,7 @@ function Get-SecretInfo {
         foreach ($secretText in $output.Split('keychain:', [System.StringSplitOptions]::RemoveEmptyEntries)) {
             $secret = Convert-KeyChainSecret $secretText
 
-            if ($secret.Name -like $Filter) {
+            if ($secret.Name -like $Filter -and $secret.VaultName -eq $VaultName) {
                 [Microsoft.PowerShell.SecretManagement.SecretInformation]::new(
                     $secret.Name,
                     $secret.Type,
@@ -307,10 +313,11 @@ function Test-SecretVault {
         [hashtable] $AdditionalParameters
     )
 
-    $null = & $securityCmd show-keychain-info $keyChainName 2>&1
-    if (!$?) {
+    $out = & $securityCmd show-keychain-info $keyChainName 2>&1 | Out-String
+    $exitstatus = $out -match $keyChainName
+    if (!$exitstatus) {
         & $securityCmd create-keychain -P $keyChainName
     }
 
-    return $?
+    return $exitstatus
 }
