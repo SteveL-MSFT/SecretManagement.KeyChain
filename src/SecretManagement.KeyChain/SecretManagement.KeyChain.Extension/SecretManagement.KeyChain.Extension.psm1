@@ -308,16 +308,34 @@ function Get-SecretInfo {
 }
 
 function Test-SecretVault {
+    [CmdletBinding()]
     param (
         [string] $VaultName,
         [hashtable] $AdditionalParameters
     )
+    if ($AdditionalParameters.Verbose) {
+        $VerbosePreference = 'Continue'
+    }
+    # VaultName corresponds to service within a secret item
+    # SecretManagement.KeyChain is a constant for this extension
+    #
+    # show-keychain-info - possible outputs
+    # Keychain "SecretManagement.KeyChain" no-timeout
+    # Keychain "SecretManagement.KeyChain" timeout=240s
+    # Keychain "SecretManagement.KeyChain" lock-on-sleep timeout=300s
+    # security: SecKeychainCopySettings SecretManagement.KeyChain: The specified keychain could not be found.
 
     $out = & $securityCmd show-keychain-info $keyChainName 2>&1 | Out-String
-    $exitstatus = $out -match $keyChainName
-    if (!$exitstatus) {
+    $keyChainExists = $out -match '^Keychain'
+    Write-Verbose -Message $out
+    Write-Verbose -Message ('keyChainExists {0}' -f $keyChainExists)
+    if (!$keyChainExists) {
         & $securityCmd create-keychain -P $keyChainName
+        # confirm keychain was properly created
+        $out = & $securityCmd show-keychain-info $keyChainName 2>&1 | Out-String
+        $keyChainExists = $out -match '^Keychain'
+        Write-Verbose -Message $out
+        Write-Verbose -Message ('keyChainExists {0}' -f $keyChainExists)    
     }
-
-    return $exitstatus
+    return $keyChainExists
 }
