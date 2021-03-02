@@ -31,22 +31,26 @@ provided via `-Password` parameter otherwise you will be prompted at the console
 
 The specific keychain created for PowerShell will require you to enter a password twice. If you forget this password, it can be reset with `Set-KeyChainConfiguration`.
 
-```powershell
-Register-SecretVault -Name KeyChain -Module SecretManagement.KeyChain
-Get-KeyChainConfiguration (new keychain will be created in this step)
-(optional) Set-KeyChainConfiguration -PasswordTimeout <int>
+```console
+PS> Register-SecretVault -Name KeyChain -Module SecretManagement.KeyChain
 
-Set-Secret -Name justask -Vault KeyChain
+# new keychain will be created in next step
+PS> Get-KeyChainConfiguration
+
+# optional if you want to change the default timeout of 300 seconds
+PS> Set-KeyChainConfiguration -PasswordTimeout <int>
+
+PS> Set-Secret -Name justask -Vault KeyChain
 cmdlet Set-Secret at command pipeline position 1
 Supply values for the following parameters:
 SecureStringSecret: ***************
 
-Get-SecretInfo -Vault KeyChain
+PS> Get-SecretInfo -Vault KeyChain
 Name            Type VaultName
 ----            ---- ---------
 justask SecureString KeyChain
 
-Get-Secret -Name justask -Vault KeyChain -AsPlainText
+PS> Get-Secret -Name justask -Vault KeyChain -AsPlainText
 ```
 
 ## Module Design
