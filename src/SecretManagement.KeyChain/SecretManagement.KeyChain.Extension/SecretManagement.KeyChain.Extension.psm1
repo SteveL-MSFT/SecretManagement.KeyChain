@@ -199,7 +199,7 @@ function Set-Secret {
     )
 
     $VaultName = Get-VaultName $VaultName
-    Test-SecretVault -VaultName $VaultName
+    Test-SecretVault -Name $VaultName
 
     # KeyChain is case-sensitive, so always use lowercase
     $Name = $Name.ToLower()
