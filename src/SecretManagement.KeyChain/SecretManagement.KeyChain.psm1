@@ -38,7 +38,7 @@ function Get-KeyChainConfiguration {
     [CmdletBinding()]
     param ()
 
-    $null = Test-SecretVault -VaultName $keyChainName
+    $null = Test-SecretVault -Name $keyChainName
     $out = & $securityCmd show-keychain-info $keyChainName 2>&1
 
     # example output:
